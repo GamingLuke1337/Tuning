@@ -1,19 +1,15 @@
 local fdsdev = nil
-local aspetta = 5000
-local creato = false
-local comandomodifica = false
-local prezzofinale = 0
-local lastJob
+local commandmodify = false
+local finalprice = 0
+local lastJob = nil
 local myCar = {}
-
-
 
 --thread modifica
 lsMenuIsShowed = false
-RegisterNetEvent("fdsdev_mechanicmenu:open", function()
+RegisterNetEvent("tuningmenu:open", function()
 	if not IsPedInAnyVehicle(PlayerPedId()) then return end
 	lsMenuIsShowed = true
-	comandomodifica = true
+	commandmodify = true
 	local playerPed = PlayerPedId()
 	local vehicle = GetVehiclePedIsIn(playerPed, false)
 	FreezeEntityPosition(vehicle, true)
@@ -25,7 +21,7 @@ end)
 
 
 function ApriMenuMeccanico()
-	veicool = GetVehiclePedIsIn(PlayerPedId(), false)
+	local veicool = GetVehiclePedIsIn(PlayerPedId(), false)
 	lsMenuIsShowed = true 
 	-- ShowText3DPrice()
 	FreezeEntityPosition(veicool, true)
@@ -38,7 +34,7 @@ exports("ApriMenuMeccanico", ApriMenuMeccanico)
 function ShowText3DPrice()
 	Citizen.CreateThread(function()
 		while lsMenuIsShowed do
-			miid(0.95, 1.435, 1.0,1.0,0.50, "~w~Spese officina:~g~  $".. prezzofinale .. '', 255, 255, 255, 255)
+			miid(0.95, 1.435, 1.0,1.0,0.50, "~w~Spese officina:~g~  $".. finalprice .. '', 255, 255, 255, 255)
 			Citizen.Wait(1)
 		end
 	end)
@@ -352,7 +348,7 @@ Localessi = {
 }
 RegisterNetEvent('fdsdev_lscustom:installMod')
 AddEventHandler('fdsdev_lscustom:installMod', function(prezzo)
-	prezzofinale = prezzofinale + (prezzo or 0) 
+	finalprice = finalprice + (prezzo or 0) 
 	local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
 	myCar = GetVehicleProperties(vehicle)
 end)
@@ -408,8 +404,8 @@ function OpenLSMenu(elems, menuName, menuTitle, parent)
 
 				if parent == nil then
 					lsMenuIsShowed = false
-					if comandomodifica then
-						comandomodifica = false
+					if commandmodify then
+						commandmodify = false
 					end
 					local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
 					FreezeEntityPosition(vehicle, false)
@@ -448,11 +444,6 @@ function OpenLSMenu(elems, menuName, menuTitle, parent)
 						props["extras"][data.current.modNum] = not data.current.modBool
 						SetVehicleProperties(vehicle, props)
 						price = math.floor(vehiclePrice * v.price / 100)
-						if not comandomodifica then
-							TriggerServerEvent('fdsdev_lscustom:buyMod', price)
-						else
-							TriggerServerEvent('fdsdev_lscustom:buyMod', 0)	
-						end
 						print("[Debug] Linea 517")
 						GetAction({label = "Extra", value = "extras", icon = "fas fa-car"})
 						-- menu.close()
@@ -470,52 +461,24 @@ function OpenLSMenu(elems, menuName, menuTitle, parent)
 					-- print("[DEBUG] Menu " .. currentKakka)
 					if isRimMod then
 						price = math.floor(vehiclePrice * data.current.price / 100)
-						if not comandomodifica then
-							TriggerServerEvent('fdsdev_lscustom:buyMod', price)
-						else
-							TriggerServerEvent('fdsdev_lscustom:buyMod', 0)	
-						end
 					elseif v.modType == 11 or v.modType == 12 or v.modType == 13 or v.modType == 15 or v.modType == 16 then
 						if v.price[data.current.modNum + 1] then
 							price = math.floor(vehiclePrice * v.price[data.current.modNum + 1] / 100)
-							if not comandomodifica then
-								TriggerServerEvent('fdsdev_lscustom:buyMod', price)
-							else
-								TriggerServerEvent('fdsdev_lscustom:buyMod', 0)	
+						elseif v.modType == 17 then
+							price = math.floor(vehiclePrice * v.price[1] / 100)
+						elseif v.modType == "extras" then
+							if data.current.label ~= "No extra found" then
+								local props = {}
+								props["extras"] = {}
+								props["extras"][data.current.modNum] = data.current.modBool
+								SetVehicleProperties(vehicle, props)
+								-- menu.close()
+								currentKakka = currentKakka - 1
+								GetAction({label = "Extra", value = "extras", icon = "fas fa-car"})
+								return
 							end
 						else
-							TriggerServerEvent('fdsdev_lscustom:buyMod', 0)	
-						end
-					elseif v.modType == 17 then
-						price = math.floor(vehiclePrice * v.price[1] / 100)
-						if not comandomodifica then
-							TriggerServerEvent('fdsdev_lscustom:buyMod', price)
-						else
-							TriggerServerEvent('fdsdev_lscustom:buyMod', 0)	
-						end
-					elseif v.modType == "extras" then
-						if data.current.label ~= "No extra found" then
-							local props = {}
-							props["extras"] = {}
-							props["extras"][data.current.modNum] = data.current.modBool
-							SetVehicleProperties(vehicle, props)
 							price = math.floor(vehiclePrice * v.price / 100)
-							if not comandomodifica then
-								TriggerServerEvent('fdsdev_lscustom:buyMod', price)
-							else
-								TriggerServerEvent('fdsdev_lscustom:buyMod', 0)	
-							end
-							-- menu.close()
-							currentKakka = currentKakka - 1
-							GetAction({label = "Extra", value = "extras", icon = "fas fa-car"})
-							return
-						end
-					else
-						price = math.floor(vehiclePrice * v.price / 100)
-						if not comandomodifica then
-							TriggerServerEvent('fdsdev_lscustom:buyMod', price)
-						else
-							TriggerServerEvent('fdsdev_lscustom:buyMod', 0)	
 						end
 					end
 					if v.modType == "extras" then
