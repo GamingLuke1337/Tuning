@@ -1,8 +1,10 @@
 Config = {}
 
+Config.Language = 'de' -- 'de, 'en'
+
 Config.Update = 'true' -- Set to false if you dont want to use the update system
 
-Config.NotifySystem = 'ox'  --  'esx', 'ox', 'okok' 'custom'
+Config.Notify = 'esx'  --  'esx', 'ox', 'okok' 'custom'
 
 -- if youre using a custom Notify
 Config.CustomNotify = function(source, message)
